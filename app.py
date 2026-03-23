@@ -390,17 +390,24 @@ if st.button("Send Message"):
                 st.warning(f"Absent/Leave students {excluded_count} per-ku message anuppala.")
 
 # Recent message
-st.subheader("📨 Recent Message")
+st.subheader("Recent Message")
+if os.path.exists(MESSAGE_LOG_FILE):
+    try:
+        logs = pd.read_csv(MESSAGE_LOG_FILE)
+        if not logs.empty and "date_time" in logs.columns:
+            latest_time = logs["date_time"].max()
+            latest_logs = logs[logs["date_time"] == latest_time]
 
-if st.session_state.recent_message is not None:
-    recent = st.session_state.recent_message
-
-    st.write(f"**Date & Time:** {recent['date_time']}")
-    st.write(f"**Teacher Name:** {recent['teacher_name']}")
-    st.write(f"**Teacher ID / Subject:** {recent['teacher_id']}")
-    st.write(f"**Message Type:** {recent['message_type']}")
-    st.write(f"**Message Text:** {recent['message_text']}")
-    st.write(f"**Sent Count:** {recent['sent_count']}")
+            st.write(f"**Date & Time:** {latest_time}")
+            st.write(f"**Teacher Name:** {latest_logs.iloc[0]['teacher_name']}")
+            st.write(f"**Teacher ID / Subject:** {latest_logs.iloc[0]['teacher_id']}")
+            st.write(f"**Message Type:** {latest_logs.iloc[0]['message_type']}")
+            st.write(f"**Message Text:** {latest_logs.iloc[0]['message_text']}")
+            st.write(f"**Sent Count:** {len(latest_logs)}")
+        else:
+            st.info("No recent message available.")
+    except Exception as e:
+        st.error(f"Could not load recent message: {e}")
 else:
     st.info("No recent message available.")
 
