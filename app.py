@@ -10,7 +10,7 @@ import streamlit as st
 # =========================
 st.set_page_config(page_title="Smart School Communication System", layout="wide")
 
-DATA_FILE = "updated_student_dataset_100_students.csv"
+DATA_FILE = "updated_student_dataset.csv"
 USERS_FILE = "users.csv"
 ATTENDANCE_FILE = "attendance_updates.csv"
 MESSAGE_LOG_FILE = "message_log.csv"
