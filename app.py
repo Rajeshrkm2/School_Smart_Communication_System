@@ -102,12 +102,21 @@ def append_csv_row(file_path, new_df):
     combined.to_csv(file_path, index=False)
 
 def login_user(username, password, mobile_number, users_df):
+    username = str(username).strip()
+    password = str(password).strip()
     mobile_number = normalize_mobile(mobile_number)
-    match = users_df[
-        (users_df["username"] == username.strip()) &
-        (users_df["password"] == password.strip()) &
-        (users_df["mobile_number"] == mobile_number)
+
+    temp_df = users_df.copy()
+    temp_df["username"] = temp_df["username"].astype(str).str.strip()
+    temp_df["password"] = temp_df["password"].astype(str).str.strip()
+    temp_df["mobile_number"] = temp_df["mobile_number"].astype(str).apply(normalize_mobile)
+
+    match = temp_df[
+        (temp_df["username"] == username) &
+        (temp_df["password"] == password) &
+        (temp_df["mobile_number"] == mobile_number)
     ]
+
     if len(match) == 1:
         row = match.iloc[0]
         return {
