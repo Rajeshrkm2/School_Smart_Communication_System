@@ -1,4 +1,4 @@
 username,password,role,name,mobile_number
-admin,admin123,admin,Main Admin,+919876543210
-teacher1,teach123,teacher,Sunitha,+919876543211
-teacher2,teach456,teacher,Rajesh,+919876543212
+admin,admin123,admin,Main Admin,9876543210
+teacher1,teach123,teacher,Sunitha,9876543211
+teacher2,teach456,teacher,Rajesh,9876543212
