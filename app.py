@@ -238,7 +238,7 @@ def show_export_buttons():
 # =========================
 # INIT
 # =========================
-ensure_base_files()
+ensure_base_files() 
 validate_required_file(DATA_FILE, REQUIRED_STUDENT_COLS, "Student dataset")
 validate_required_file(USERS_FILE, REQUIRED_USER_COLS, "Users file")
 
@@ -384,66 +384,67 @@ if current_user["role"] == "admin":
         st.write("Admin has full access to logs and attendance sync.")
 
 # Send Message
-st.subheader("✉️ Send Message")
+if current_user["role"] in ["teacher", "admin"]:
+    st.subheader("✉️ Send Message")
 
-teacher_id = st.text_input("Teacher ID / Subject")
-message_type = st.selectbox(
-    "Message Type",
-    ["Homework", "Holiday Notice", "Exam Reminder", "General Announcement"]
-)
-message_text = st.text_area("Enter Message")
+    teacher_id = st.text_input("Teacher ID / Subject")
+    message_type = st.selectbox(
+        "Message Type",
+        ["Homework", "Holiday Notice", "Exam Reminder", "General Announcement"]
+    )
+    message_text = st.text_area("Enter Message")
 
-st.caption("✅ Present students-ku mattum message anuppuvom. Absent / Leave students-ku message pogathu.")
+    st.caption("✅ Present students-ku mattum message anuppuvom. Absent / Leave students-ku message pogathu.")
 
-if st.button("Send Message"):
-    if teacher_id.strip() == "":
-        st.warning("Teacher ID / Subject enter pannunga.")
-    elif message_text.strip() == "":
-        st.warning("Message enter pannunga.")
-    else:
-        send_df = filtered_df[
-            filtered_df["student_status"].str.lower() == "present"
-        ].copy()
-
-        if len(send_df) == 0:
-            st.warning("Present students yaarum illa. So message send aagala.")
+    if st.button("Send Message"):
+        if teacher_id.strip() == "":
+            st.warning("Teacher ID / Subject enter pannunga.")
+        elif message_text.strip() == "":
+            st.warning("Message enter pannunga.")
         else:
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            log_rows = []
+            send_df = filtered_df[
+                filtered_df["student_status"].str.lower() == "present"
+            ].copy()
 
-            for _, row in send_df.iterrows():
-                log_rows.append({
+            if len(send_df) == 0:
+                st.warning("Present students yaarum illa. So message send aagala.")
+            else:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                log_rows = []
+
+                for _, row in send_df.iterrows():
+                    log_rows.append({
+                        "date_time": now,
+                        "teacher_name": current_user["name"],
+                        "teacher_username": current_user["username"],
+                        "teacher_role": current_user["role"],
+                        "teacher_id": teacher_id,
+                        "roll_no": row["roll_no"],
+                        "student_name": row["name"],
+                        "class": row["class"],
+                        "section": row["section"],
+                        "student_status": row["student_status"],
+                        "message_type": message_type,
+                        "message_text": message_text,
+                        "delivery_status": "Sent"
+                    })
+
+                append_csv_row(MESSAGE_LOG_FILE, pd.DataFrame(log_rows))
+
+                st.session_state.recent_message = {
                     "date_time": now,
                     "teacher_name": current_user["name"],
-                    "teacher_username": current_user["username"],
-                    "teacher_role": current_user["role"],
                     "teacher_id": teacher_id,
-                    "roll_no": row["roll_no"],
-                    "student_name": row["name"],
-                    "class": row["class"],
-                    "section": row["section"],
-                    "student_status": row["student_status"],
                     "message_type": message_type,
                     "message_text": message_text,
-                    "delivery_status": "Sent"
-                })
+                    "sent_count": len(send_df)
+                }
 
-            append_csv_row(MESSAGE_LOG_FILE, pd.DataFrame(log_rows))
+                excluded_count = len(filtered_df) - len(send_df)
 
-            st.session_state.recent_message = {
-                "date_time": now,
-                "teacher_name": current_user["name"],
-                "teacher_id": teacher_id,
-                "message_type": message_type,
-                "message_text": message_text,
-                "sent_count": len(send_df)
-            }
-
-            excluded_count = len(filtered_df) - len(send_df)
-
-            st.success(f"✅ Message sent successfully to {len(send_df)} Present students.")
-            if excluded_count > 0:
-                st.warning(f"Absent/Leave students {excluded_count} per-ku message anuppala.")
+                st.success(f"✅ Message sent successfully to {len(send_df)} Present students.")
+                if excluded_count > 0:
+                    st.warning(f"Absent/Leave students {excluded_count} per-ku message anuppala.")
 
 # Recent Message
 st.subheader("📨 Recent Message")
